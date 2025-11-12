@@ -5,8 +5,8 @@ api:
 sources:
   docker_host:
     type: docker_logs
-    exclude_containers:
-      - supabase-vector
+    include_labels:
+      - "com.docker.compose.project"
 
 transforms:
   project_logs:
@@ -17,6 +17,12 @@ transforms:
       .project = "default"
       .event_message = del(.message)
       .appname = del(.container_name)
+
+      # Exclude vector container logs
+      if ends_with!(.appname, "-vector") {
+        abort
+      }
+
       del(.container_created_at)
       del(.container_id)
       del(.source_type)
@@ -30,13 +36,13 @@ transforms:
     inputs:
       - project_logs
     route:
-      kong: '.appname == "supabase-kong"'
-      auth: '.appname == "supabase-auth"'
-      rest: '.appname == "supabase-rest"'
-      realtime: '.appname == "realtime-dev.supabase-realtime"'
-      storage: '.appname == "supabase-storage"'
-      functions: '.appname == "supabase-edge-functions"'
-      db: '.appname == "supabase-db"'
+      kong: 'ends_with!(.appname, "-kong")'
+      auth: 'ends_with!(.appname, "-auth")'
+      rest: 'ends_with!(.appname, "-rest")'
+      realtime: 'contains!(.appname, "realtime-dev") && ends_with!(.appname, "-realtime")'
+      storage: 'ends_with!(.appname, "-storage")'
+      functions: 'ends_with!(.appname, "-edge-functions")'
+      db: 'ends_with!(.appname, "-db")'
   # Ignores non nginx errors since they are related with kong booting up
   kong_logs:
     type: remap

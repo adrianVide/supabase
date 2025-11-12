@@ -35,8 +35,6 @@ services:
       timeout: 10s
       interval: 5s
       retries: 3
-    depends_on:
-
     environment:
       # Binds nestjs listener to both IPv4 and IPv6 network interfaces
       HOSTNAME: "::"
@@ -82,8 +80,6 @@ services:
     volumes:
       # https://github.com/supabase/supabase/issues/12661
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
-    depends_on:
-
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
@@ -122,7 +118,6 @@ services:
       db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -193,7 +188,6 @@ services:
       db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-
     environment:
       PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
       PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
@@ -219,7 +213,6 @@ services:
       db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-
     healthcheck:
       test:
         [
@@ -352,8 +345,6 @@ services:
         ipv4_address: 172.28.0.27
     volumes:
       - ./volumes/functions:/home/deno/functions:Z
-    depends_on:
-
     environment:
       JWT_SECRET: ${JWT_SECRET}
       SUPABASE_URL: http://172.28.0.28:8000
@@ -490,7 +481,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
     environment:
       PORT: 4000
       POSTGRES_PORT: ${POSTGRES_PORT}

@@ -1,12 +1,20 @@
 # Supabase Docker Compose - Complete with Static IPs (Dokploy DNS workaround)
 # IMPORTANT: Each deployment needs unique values for these variables:
 #   SUBNET_THIRD_OCTET: 28, 29, 30, etc. (determines internal network IPs)
+#   PROJECT_NAME: project identifier (e.g., supabase, trading, myapp)
+#   CONTAINER_PREFIX: deployment prefix (e.g., main, prod, dev)
 #   POSTGRES_PORT: 5432, 5433, 5434, etc. (external PostgreSQL port)
 #   POOLER_PROXY_PORT_TRANSACTION: 6543, 6544, 6545, etc. (external pooler port)
 #   KONG_HTTP_PORT: 8000, 8001, 8002, etc. (external HTTP port)
 #   KONG_HTTPS_PORT: 8443, 8444, 8445, etc. (external HTTPS port)
 #   ANALYTICS_PORT: 4000, 4001, 4002, etc. (external analytics port)
+#
 # POSTGRES_HOST is automatically constructed from SUBNET_THIRD_OCTET
+#
+# Persistent data locations:
+#   Project folder: /data/backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/
+#     - database/  (PostgreSQL data)
+#     - storage/   (uploaded files)
 
 networks:
   supabase:
@@ -275,7 +283,7 @@ services:
       supabase:
         ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.24
     volumes:
-      - ./volumes/storage:/var/lib/storage:z
+      - /data/backups/${PROJECT_NAME:-supabase}-${CONTAINER_PREFIX:-default}/storage:/var/lib/storage:z
     healthcheck:
       test:
         [
@@ -320,7 +328,7 @@ services:
       supabase:
         ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.25
     volumes:
-      - ./volumes/storage:/var/lib/storage:z
+      - /data/backups/${PROJECT_NAME:-supabase}-${CONTAINER_PREFIX:-default}/storage:/var/lib/storage:z
     healthcheck:
       test:
         [
@@ -451,7 +459,7 @@ services:
       # Initialize the database settings with JWT_SECRET and JWT_EXP
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       # PGDATA directory is persisted between restarts using bind mount
-      - /data/backups/${PROJECT_NAME:-supabase}-${CONTAINER_PREFIX:-default}:/var/lib/postgresql/data:Z
+      - /data/backups/${PROJECT_NAME:-supabase}-${CONTAINER_PREFIX:-default}/database:/var/lib/postgresql/data:Z
       # Changes required for internal supabase data such as _analytics
       - ./volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
       # Changes required for Analytics support

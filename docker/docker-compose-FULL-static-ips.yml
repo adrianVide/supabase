@@ -1,5 +1,6 @@
 # Supabase Docker Compose - Complete with Static IPs (Dokploy DNS workaround)
 # IMPORTANT: Set SUBNET_THIRD_OCTET to a unique value for each deployment (e.g., 28, 29, 30)
+# IMPORTANT: Set ANALYTICS_PORT to a unique value for each deployment (e.g., 4000, 4001, 4002)
 # POSTGRES_HOST is automatically constructed from SUBNET_THIRD_OCTET
 
 networks:
@@ -384,7 +385,7 @@ services:
       supabase:
         ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.20
     ports:
-      - 4000:4000
+      - ${ANALYTICS_PORT:-4000}:4000
     # Uncomment to use Big Query backend for analytics
     # volumes:
     #   - type: bind

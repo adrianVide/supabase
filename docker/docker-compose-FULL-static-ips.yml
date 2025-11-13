@@ -1,6 +1,11 @@
 # Supabase Docker Compose - Complete with Static IPs (Dokploy DNS workaround)
-# IMPORTANT: Set SUBNET_THIRD_OCTET to a unique value for each deployment (e.g., 28, 29, 30)
-# IMPORTANT: Set ANALYTICS_PORT to a unique value for each deployment (e.g., 4000, 4001, 4002)
+# IMPORTANT: Each deployment needs unique values for these variables:
+#   SUBNET_THIRD_OCTET: 28, 29, 30, etc. (determines internal network IPs)
+#   POSTGRES_PORT: 5432, 5433, 5434, etc. (external PostgreSQL port)
+#   POOLER_PROXY_PORT_TRANSACTION: 6543, 6544, 6545, etc. (external pooler port)
+#   KONG_HTTP_PORT: 8000, 8001, 8002, etc. (external HTTP port)
+#   KONG_HTTPS_PORT: 8443, 8444, 8445, etc. (external HTTPS port)
+#   ANALYTICS_PORT: 4000, 4001, 4002, etc. (external analytics port)
 # POSTGRES_HOST is automatically constructed from SUBNET_THIRD_OCTET
 
 networks:

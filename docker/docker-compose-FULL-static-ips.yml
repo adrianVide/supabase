@@ -1,5 +1,6 @@
 # Supabase Docker Compose - Complete with Static IPs (Dokploy DNS workaround)
-# IMPORTANT: Set POSTGRES_HOST=172.28.0.10 in your Dokploy environment variables
+# IMPORTANT: Set SUBNET_THIRD_OCTET to a unique value for each deployment (e.g., 28, 29, 30)
+# POSTGRES_HOST is automatically constructed from SUBNET_THIRD_OCTET
 
 networks:
   supabase:
@@ -7,7 +8,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.28.0.0/16
+        - subnet: 172.${SUBNET_THIRD_OCTET:-28}.0.0/16
 
 # Usage
 #   Start:              docker compose up
@@ -23,7 +24,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.29
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.29
     healthcheck:
       test:
         [
@@ -42,9 +43,9 @@ services:
       # Binds nestjs listener to both IPv4 and IPv6 network interfaces
       HOSTNAME: "::"
 
-      STUDIO_PG_META_URL: http://172.28.0.26:8080
+      STUDIO_PG_META_URL: http://172.${SUBNET_THIRD_OCTET:-28}.0.26:8080
       POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_HOST: 172.${SUBNET_THIRD_OCTET:-28}.0.10
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
@@ -53,7 +54,7 @@ services:
       DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
 
-      SUPABASE_URL: http://172.28.0.28:8000
+      SUPABASE_URL: http://172.${SUBNET_THIRD_OCTET:-28}.0.28:8000
       SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
@@ -64,7 +65,7 @@ services:
       LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN}
       LOGFLARE_PRIVATE_ACCESS_TOKEN: ${LOGFLARE_PRIVATE_ACCESS_TOKEN}
 
-      LOGFLARE_URL: http://172.28.0.20:4000
+      LOGFLARE_URL: http://172.${SUBNET_THIRD_OCTET:-28}.0.20:4000
       NEXT_PUBLIC_ENABLE_LOGS: true
       # Comment to use Big Query backend for analytics
       NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
@@ -76,7 +77,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.28
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.28
     ports:
       - ${KONG_HTTP_PORT}:8000/tcp
       - ${KONG_HTTPS_PORT}:8443/tcp
@@ -106,7 +107,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.21
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.21
     healthcheck:
       test:
         [
@@ -132,7 +133,7 @@ services:
       API_EXTERNAL_URL: ${API_EXTERNAL_URL}
 
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@172.${SUBNET_THIRD_OCTET:-28}.0.10:${POSTGRES_PORT}/${POSTGRES_DB}
 
       GOTRUE_SITE_URL: ${SITE_URL}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
@@ -191,7 +192,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.22
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.22
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -199,7 +200,7 @@ services:
       analytics:
         condition: service_healthy
     environment:
-      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@172.${SUBNET_THIRD_OCTET:-28}.0.10:${POSTGRES_PORT}/${POSTGRES_DB}
       PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
@@ -218,7 +219,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.23
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.23
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -243,7 +244,7 @@ services:
       retries: 3
     environment:
       PORT: 4000
-      DB_HOST: ${POSTGRES_HOST}
+      DB_HOST: 172.${SUBNET_THIRD_OCTET:-28}.0.10
       DB_PORT: ${POSTGRES_PORT}
       DB_USER: supabase_admin
       DB_PASSWORD: ${POSTGRES_PASSWORD}
@@ -265,7 +266,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.24
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.24
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     healthcheck:
@@ -276,7 +277,7 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://172.28.0.24:5000/status"
+          "http://172.${SUBNET_THIRD_OCTET:-28}.0.24:5000/status"
         ]
       timeout: 5s
       interval: 5s
@@ -292,9 +293,9 @@ services:
     environment:
       ANON_KEY: ${ANON_KEY}
       SERVICE_KEY: ${SERVICE_ROLE_KEY}
-      POSTGREST_URL: http://172.28.0.22:3000
+      POSTGREST_URL: http://172.${SUBNET_THIRD_OCTET:-28}.0.22:3000
       PGRST_JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@172.${SUBNET_THIRD_OCTET:-28}.0.10:${POSTGRES_PORT}/${POSTGRES_DB}
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
@@ -303,14 +304,14 @@ services:
       REGION: stub
       GLOBAL_S3_BUCKET: stub
       ENABLE_IMAGE_TRANSFORMATION: "true"
-      IMGPROXY_URL: http://172.28.0.25:5001
+      IMGPROXY_URL: http://172.${SUBNET_THIRD_OCTET:-28}.0.25:5001
 
   imgproxy:
     image: darthsim/imgproxy:v3.8.0
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.25
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.25
     volumes:
       - ./volumes/storage:/var/lib/storage:z
     healthcheck:
@@ -334,7 +335,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.26
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.26
     depends_on:
       db:
         # Disable this if you are using an external Postgres database
@@ -343,7 +344,7 @@ services:
         condition: service_healthy
     environment:
       PG_META_PORT: 8080
-      PG_META_DB_HOST: ${POSTGRES_HOST}
+      PG_META_DB_HOST: 172.${SUBNET_THIRD_OCTET:-28}.0.10
       PG_META_DB_PORT: ${POSTGRES_PORT}
       PG_META_DB_NAME: ${POSTGRES_DB}
       PG_META_DB_USER: supabase_admin
@@ -355,7 +356,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.27
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.27
     volumes:
       - ./volumes/functions:/home/deno/functions:Z
     depends_on:
@@ -363,10 +364,10 @@ services:
         condition: service_healthy
     environment:
       JWT_SECRET: ${JWT_SECRET}
-      SUPABASE_URL: http://172.28.0.28:8000
+      SUPABASE_URL: http://172.${SUBNET_THIRD_OCTET:-28}.0.28:8000
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
-      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@172.${SUBNET_THIRD_OCTET:-28}.0.10:${POSTGRES_PORT}/${POSTGRES_DB}
       # TODO: Allow configuring VERIFY_JWT per function. This PR might help: https://github.com/supabase/cli/pull/786
       VERIFY_JWT: "${FUNCTIONS_VERIFY_JWT}"
     command:
@@ -381,7 +382,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.20
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.20
     ports:
       - 4000:4000
     # Uncomment to use Big Query backend for analytics
@@ -410,7 +411,7 @@ services:
       LOGFLARE_NODE_HOST: 127.0.0.1
       DB_USERNAME: supabase_admin
       DB_DATABASE: _supabase
-      DB_HOSTNAME: ${POSTGRES_HOST}
+      DB_HOSTNAME: 172.${SUBNET_THIRD_OCTET:-28}.0.10
       DB_PORT: ${POSTGRES_PORT}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_SCHEMA: _analytics
@@ -420,7 +421,7 @@ services:
       LOGFLARE_SUPABASE_MODE: true
 
       # Comment variables to use Big Query backend for analytics
-      POSTGRES_BACKEND_URL: postgresql://supabase_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/_supabase
+      POSTGRES_BACKEND_URL: postgresql://supabase_admin:${POSTGRES_PASSWORD}@172.${SUBNET_THIRD_OCTET:-28}.0.10:${POSTGRES_PORT}/_supabase
       POSTGRES_BACKEND_SCHEMA: _analytics
       LOGFLARE_FEATURE_FLAG_OVERRIDE: multibackend=true
       # Uncomment to use Big Query backend for analytics
@@ -433,7 +434,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.10
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.10
     volumes:
       - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
       # Must be superuser to create event trigger
@@ -442,8 +443,8 @@ services:
       - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       # Initialize the database settings with JWT_SECRET and JWT_EXP
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
-      # PGDATA directory is persisted between restarts using named volume
-      - db-data:/var/lib/postgresql/data:Z
+      # PGDATA directory is persisted between restarts using bind mount
+      - /data/backups/${PROJECT_NAME:-supabase}-${CONTAINER_PREFIX:-default}:/var/lib/postgresql/data:Z
       # Changes required for internal supabase data such as _analytics
       - ./volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
       # Changes required for Analytics support
@@ -492,7 +493,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.11
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.11
     volumes:
       - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
       - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro,z
@@ -525,7 +526,7 @@ services:
     restart: unless-stopped
     networks:
       supabase:
-        ipv4_address: 172.28.0.30
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.30
     ports:
       - ${POSTGRES_PORT}:5432
       - ${POOLER_PROXY_PORT_TRANSACTION}:6543
@@ -555,7 +556,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_URL: ecto://supabase_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/_supabase
+      DATABASE_URL: ecto://supabase_admin:${POSTGRES_PASSWORD}@172.${SUBNET_THIRD_OCTET:-28}.0.10:${POSTGRES_PORT}/_supabase
       CLUSTER_POSTGRES: true
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       VAULT_ENC_KEY: ${VAULT_ENC_KEY}
@@ -577,4 +578,3 @@ services:
 
 volumes:
   db-config:
-  db-data:

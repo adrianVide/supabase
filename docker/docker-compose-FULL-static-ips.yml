@@ -94,6 +94,7 @@ services:
       analytics:
         condition: service_healthy
     environment:
+      SUBNET_THIRD_OCTET: ${SUBNET_THIRD_OCTET:-28}
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
       # https://github.com/supabase/cli/issues/14

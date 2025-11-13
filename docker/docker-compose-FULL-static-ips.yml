@@ -11,10 +11,13 @@
 #
 # POSTGRES_HOST is automatically constructed from SUBNET_THIRD_OCTET
 #
-# Persistent data locations:
+# Persistent data locations (automatically created on deploy/redeploy):
 #   Project folder: /data/backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/
 #     - database/  (PostgreSQL data)
 #     - storage/   (uploaded files)
+#
+# The init-backup-dirs service automatically creates this structure with correct
+# permissions on every deployment, so no manual setup is required!
 
 networks:
   supabase:
@@ -32,6 +35,28 @@ networks:
 #   Reset everything:  ./reset.sh
 
 services:
+
+  # Init service - creates backup directory structure with correct permissions
+  init-backup-dirs:
+    image: busybox:latest
+    volumes:
+      - /data/backups:/backups
+    environment:
+      PROJECT_NAME: ${PROJECT_NAME:-supabase}
+      CONTAINER_PREFIX: ${CONTAINER_PREFIX:-default}
+    command: >
+      sh -c "
+      echo 'Creating backup directory structure for: $${PROJECT_NAME}-$${CONTAINER_PREFIX}';
+      mkdir -p /backups;
+      mkdir -p /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database;
+      mkdir -p /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/storage;
+      chown -R 999:999 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database 2>/dev/null || echo 'Note: Could not set database ownership (may need root on host)';
+      chmod -R 700 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database 2>/dev/null || echo 'Note: Could not set database permissions (may need root on host)';
+      echo 'Backup directories ready:';
+      ls -la /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/ || echo 'Directory created but not yet visible';
+      echo 'Init complete!'
+      "
+    restart: "no"
 
   studio:
     image: supabase/studio:2025.11.10-sha-5291fe3
@@ -283,7 +308,7 @@ services:
       supabase:
         ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.24
     volumes:
-      - /data/backups/${PROJECT_NAME:-supabase}-${CONTAINER_PREFIX:-default}/storage:/var/lib/storage:z
+      - /data/backups/${PROJECT_NAME}-${CONTAINER_PREFIX:-default}/storage:/var/lib/storage:z
     healthcheck:
       test:
         [
@@ -298,6 +323,8 @@ services:
       interval: 5s
       retries: 3
     depends_on:
+      init-backup-dirs:
+        condition: service_completed_successfully
       db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
@@ -328,7 +355,7 @@ services:
       supabase:
         ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.25
     volumes:
-      - /data/backups/${PROJECT_NAME:-supabase}-${CONTAINER_PREFIX:-default}/storage:/var/lib/storage:z
+      - /data/backups/${PROJECT_NAME}-${CONTAINER_PREFIX:-default}/storage:/var/lib/storage:z
     healthcheck:
       test:
         [
@@ -482,6 +509,8 @@ services:
       timeout: 5s
       retries: 10
     depends_on:
+      init-backup-dirs:
+        condition: service_completed_successfully
       vector:
         condition: service_healthy
     environment:

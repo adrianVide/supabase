@@ -24,8 +24,6 @@ services:
     networks:
       supabase:
         ipv4_address: 172.28.0.29
-    ports:
-      - "3001:3000" 
     healthcheck:
       test:
         [

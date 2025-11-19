@@ -232,10 +232,54 @@ services:
         "postgrest"
       ]
 
-  # The rest of the services (realtime, storage, imgproxy, meta, functions, analytics, db, vector, supavisor)
-  # should be copied exactly as in your original file, with network IPs, volumes, healthchecks, and environment
-  # variables intact.
-storage:
+  realtime:
+    # This container name looks inconsistent but is correct because realtime constructs tenant id by parsing the subdomain
+    hostname: realtime-dev.${CONTAINER_PREFIX:-default}-realtime
+    image: supabase/realtime:v2.63.0
+    restart: unless-stopped
+    networks:
+      supabase:
+        ipv4_address: 172.${SUBNET_THIRD_OCTET:-28}.0.23
+    depends_on:
+      db:
+        condition: service_healthy
+      analytics:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-sSfL",
+          "--head",
+          "-o",
+          "/dev/null",
+          "-H",
+          "Authorization: Bearer ${ANON_KEY}",
+          "http://localhost:4000/api/tenants/realtime-dev/health"
+        ]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      PORT: 4000
+      DB_HOST: 172.${SUBNET_THIRD_OCTET:-28}.0.10
+      DB_PORT: ${POSTGRES_PORT}
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
+      DB_ENC_KEY: supabaserealtime
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODES: "''"
+      RLIMIT_NOFILE: "10000"
+      APP_NAME: realtime
+      SEED_SELF_HOST: true
+      RUN_JANITOR: true
+
+  storage:
     image: supabase/storage-api:v1.29.0
     restart: unless-stopped
     networks:

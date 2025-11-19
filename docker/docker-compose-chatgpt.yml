@@ -1,56 +1,8 @@
 # Supabase Docker Compose - Complete with Static IPs (Dokploy DNS workaround)
 # ==========================
-# 1️⃣ INSTANCE VARIABLES
-# Modify these for each deployment
+# All configuration variables should be provided via .env file
+# See envs/.env.neurovivia-dashboard or envs/.env.chatgpt for examples
 # ==========================
-environment:
-  SUBNET_THIRD_OCTET: 28
-  PROJECT_NAME: supabase
-  CONTAINER_PREFIX: default
-  POSTGRES_PORT: 5432
-  POOLER_PROXY_PORT_TRANSACTION: 6543
-  KONG_HTTP_PORT: 8000
-  KONG_HTTPS_PORT: 8443
-  ANALYTICS_PORT: 4000
-  POSTGRES_DB: supabase
-  POSTGRES_PASSWORD: examplepassword
-  JWT_SECRET: supersecretjwt
-  JWT_EXPIRY: 3600
-  ANON_KEY: exampleanonkey
-  SERVICE_ROLE_KEY: exampleservicekey
-  STUDIO_DEFAULT_ORGANIZATION: defaultorg
-  STUDIO_DEFAULT_PROJECT: defaultproject
-  OPENAI_API_KEY: ""
-  SUPABASE_PUBLIC_URL: http://localhost:8000
-  SITE_URL: http://localhost:8000
-  API_EXTERNAL_URL: http://localhost:8000
-  ADDITIONAL_REDIRECT_URLS: http://localhost:8000
-  DISABLE_SIGNUP: "false"
-  ENABLE_EMAIL_SIGNUP: "true"
-  ENABLE_EMAIL_AUTOCONFIRM: "true"
-  SMTP_ADMIN_EMAIL: admin@example.com
-  SMTP_HOST: smtp.example.com
-  SMTP_PORT: 587
-  SMTP_USER: smtp_user
-  SMTP_PASS: smtp_pass
-  SMTP_SENDER_NAME: "Supabase"
-  MAILER_URLPATHS_INVITE: /invite
-  MAILER_URLPATHS_CONFIRMATION: /confirm
-  MAILER_URLPATHS_RECOVERY: /recover
-  MAILER_URLPATHS_EMAIL_CHANGE: /change
-  ENABLE_PHONE_SIGNUP: "false"
-  ENABLE_PHONE_AUTOCONFIRM: "false"
-  SECRET_KEY_BASE: secretkeybase
-  VAULT_ENC_KEY: vaultkey
-  POOLER_TENANT_ID: tenant1
-  POOLER_DEFAULT_POOL_SIZE: 20
-  POOLER_MAX_CLIENT_CONN: 100
-  POOLER_DB_POOL_SIZE: 10
-  IMGPROXY_ENABLE_WEBP_DETECTION: "true"
-  FUNCTIONS_VERIFY_JWT: "true"
-  DOCKER_SOCKET_LOCATION: /var/run/docker.sock
-  LOGFLARE_PUBLIC_ACCESS_TOKEN: examplepublictoken
-  LOGFLARE_PRIVATE_ACCESS_TOKEN: exampleprivatetoken
 
 networks:
   supabase:

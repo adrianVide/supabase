@@ -36,13 +36,13 @@ services:
       mkdir -p /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/storage;
       echo '✓ Directories created';
       echo '';
-      echo 'Setting ownership to 105:106 (postgres user in supabase/postgres image)...';
-      chown -R 105:106 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/database || { echo 'ERROR: Failed to set database ownership'; exit 1; };
+      echo 'Setting ownership to 70:70 (postgres user)...';
+      chown -R 70:70 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/database || { echo 'ERROR: Failed to set database ownership'; exit 1; };
       chmod -R 700 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/database || { echo 'ERROR: Failed to set database permissions'; exit 1; };
-      echo '✓ Database permissions set (owner: 105:106, mode: 700)';
-      chown -R 999:999 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/storage || { echo 'ERROR: Failed to set storage ownership'; exit 1; };
+      echo '✓ Database permissions set (owner: 70:70, mode: 700)';
+      chown -R 70:70 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/storage || { echo 'ERROR: Failed to set storage ownership'; exit 1; };
       chmod -R 755 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/storage || { echo 'ERROR: Failed to set storage permissions'; exit 1; };
-      echo '✓ Storage permissions set (owner: 999:999, mode: 755)';
+      echo '✓ Storage permissions set (owner: 70:70, mode: 755)';
       echo '';
       echo 'Verifying permissions...';
       ls -lan /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/ || { echo 'ERROR: Cannot verify permissions'; exit 1; };
@@ -287,6 +287,7 @@ services:
       SERVICE_KEY: ${SERVICE_ROLE_KEY}
       POSTGREST_URL: http://172.${SUBNET_THIRD_OCTET:-28}.0.22:3000
       PGRST_JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@172.${SUBNET_THIRD_OCTET:-28}.0.10:${POSTGRES_PORT}/${POSTGRES_DB}
       FILE_SIZE_LIMIT: 524288000
       STORAGE_BACKEND: file
@@ -445,6 +446,8 @@ services:
       - ./volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
       # Changes required for Pooler support
       - ./volumes/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
+      # Storage RLS policies for file uploads
+      - ./volumes/db/storage-policies.sql:/docker-entrypoint-initdb.d/migrations/99-storage-policies.sql:Z
       # Use named volume to persist pgsodium decryption key between restarts
       - db-config:/etc/postgresql-custom
     healthcheck:

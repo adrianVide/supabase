@@ -14,44 +14,44 @@ networks:
 
 services:
 
-  init-backup-dirs:
-    image: busybox:latest
-    user: root
-    privileged: true
-    volumes:
-      - /data/backups:/backups
-    environment:
-      PROJECT_NAME: ${PROJECT_NAME}
-      CONTAINER_PREFIX: ${CONTAINER_PREFIX}
-    command: >
-      sh -c "
-      echo '========================================';
-      echo 'Initializing Supabase backup directories';
-      echo 'Project: $${PROJECT_NAME}-$${CONTAINER_PREFIX}';
-      echo '========================================';
-      echo '';
-      echo 'Creating directory structure...';
-      mkdir -p /backups;
-      mkdir -p /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database;
-      mkdir -p /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/storage;
-      echo '✓ Directories created';
-      echo '';
-      echo 'Setting ownership to 999:999 (postgres user)...';
-      chown -R 999:999 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database || { echo 'ERROR: Failed to set database ownership'; exit 1; };
-      chmod -R 700 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database || { echo 'ERROR: Failed to set database permissions'; exit 1; };
-      echo '✓ Database permissions set (owner: 999:999, mode: 700)';
-      chown -R 999:999 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/storage || { echo 'ERROR: Failed to set storage ownership'; exit 1; };
-      chmod -R 755 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/storage || { echo 'ERROR: Failed to set storage permissions'; exit 1; };
-      echo '✓ Storage permissions set (owner: 999:999, mode: 755)';
-      echo '';
-      echo 'Verifying permissions...';
-      ls -lan /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/ || { echo 'ERROR: Cannot verify permissions'; exit 1; };
-      echo '';
-      echo '========================================';
-      echo '✓ Initialization complete!';
-      echo '========================================';
-      "
-    restart: "no"
+     init-backup-dirs:
+      image: busybox:latest
+      user: root
+      privileged: true
+      volumes:
+        - /data/backups:/backups
+      environment:
+        PROJECT_NAME: ${PROJECT_NAME}
+        CONTAINER_PREFIX: ${CONTAINER_PREFIX}
+      command: >
+        sh -c "
+        echo '========================================';
+        echo 'Initializing Supabase backup directories';
+        echo 'Project: ${PROJECT_NAME}-${CONTAINER_PREFIX}';
+        echo '========================================';
+        echo '';
+        echo 'Creating directory structure...';
+        mkdir -p /backups;
+        mkdir -p /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/database;
+        mkdir -p /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/storage;
+        echo '✓ Directories created';
+        echo '';
+        echo 'Setting ownership to 105:106 (postgres user in supabase/postgres image)...';
+        chown -R 105:106 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/database || { echo 'ERROR: Failed to set database ownership'; exit 1; };
+        chmod -R 700 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/database || { echo 'ERROR: Failed to set database permissions'; exit 1; };
+        echo '✓ Database permissions set (owner: 105:106, mode: 700)';
+        chown -R 999:999 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/storage || { echo 'ERROR: Failed to set storage ownership'; exit 1; };
+        chmod -R 755 /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/storage || { echo 'ERROR: Failed to set storage permissions'; exit 1; };
+        echo '✓ Storage permissions set (owner: 999:999, mode: 755)';
+        echo '';
+        echo 'Verifying permissions...';
+        ls -lan /backups/${PROJECT_NAME}-${CONTAINER_PREFIX}/ || { echo 'ERROR: Cannot verify permissions'; exit 1; };
+        echo '';
+        echo '========================================';
+        echo '✓ Initialization complete!';
+        echo '========================================';
+        "
+      restart: "no"
 
   studio:
     image: supabase/studio:2025.11.10-sha-5291fe3

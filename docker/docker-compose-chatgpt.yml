@@ -16,6 +16,7 @@ services:
 
   init-backup-dirs:
     image: busybox:latest
+    user: root
     volumes:
       - /data/backups:/backups
     environment:
@@ -27,10 +28,13 @@ services:
       mkdir -p /backups;
       mkdir -p /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database;
       mkdir -p /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/storage;
-      chown -R 999:999 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database 2>/dev/null || echo 'Note: Could not set database ownership (may need root on host)';
-      chmod -R 700 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database 2>/dev/null || echo 'Note: Could not set database permissions (may need root on host)';
-      echo 'Backup directories ready:';
-      ls -la /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/ || echo 'Directory created but not yet visible';
+      echo 'Setting ownership to 999:999 (postgres user)...';
+      chown -R 999:999 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database;
+      chmod -R 700 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/database;
+      chown -R 999:999 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/storage;
+      chmod -R 755 /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/storage;
+      echo 'Verifying permissions...';
+      ls -lan /backups/$${PROJECT_NAME}-$${CONTAINER_PREFIX}/;
       echo 'Init complete!'
       "
     restart: "no"
